@@ -5,12 +5,21 @@ const fetch = require('node-fetch');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// health endpoint (good for IBM health checks & registry)
+// 🔹 Serve static files from /public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 🔹 Root route: send index.html
+app.get('/', (req, res) => {
+  console.log('GET / -> serving index.html');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// 🔹 Health endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// very basic Song Stats endpoint (no Spotify yet, just a stub)
+// 🔹 Stub Song Stats endpoint
 app.get('/song-stats', async (req, res) => {
   const trackId = req.query.trackId;
 
