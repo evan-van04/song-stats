@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Song Stats – Spotify Microservice</title>
+  <!-- Quick, decent styling via Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+  <div class="w-full max-w-xl bg-slate-900/80 rounded-2xl shadow-lg p-8 border border-slate-700">
+    <h1 class="text-2xl font-semibold mb-2">Song Stats</h1>
+    <p class="text-sm text-slate-300 mb-6">
+      Paste a Spotify track URL or ID and we’ll pull tempo, mood, energy, etc.
+    </p>
+
+    <form id="stats-form" class="space-y-4">
+      <label class="block text-sm font-medium">
+        Spotify Track URL or ID
+        <input
+          id="track-input"
+          type="text"
+          class="mt-1 w-full rounded-xl bg-slate-800 border border-slate-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder="https://open.spotify.com/track/..."
+          required
+        />
+      </label>
+
+      <button
+        type="submit"
+        class="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-medium py-2.5 text-sm transition"
+      >
+        Get Song Stats
+      </button>
+    </form>
+
+    <div id="result" class="mt-6 hidden">
+      <h2 class="text-lg font-semibold mb-2">Results</h2>
+      <div id="result-content" class="text-sm space-y-1"></div>
+    </div>
+
+    <div id="error" class="mt-4 text-sm text-red-400 hidden"></div>
+  </div>
+
+  <script>
+    function extractTrackId(input) {
+      // if it's a full Spotify URL, extract the ID
+      const match = input.match(/track\/([a-zA-Z0-9]+)/);
+      if (match) return match[1];
+      // otherwise assume it's already an ID
+      return input.trim();
+    }
+
+    const form = document.getElementById('stats-form');
+    const input = document.getElementById('track-input');
+    const resultBox = document.getElementById('result');
+    const resultContent = document.getElementById('result-content');
+    const errorBox = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.add('hidden');
+      resultBox.classList.add('hidden');
+      resultContent.innerHTML = 'Loading...';
+
+      const raw = input.value;
+      const trackId = extractTrackId(raw);
+
+      try {
+        const res = await fetch(`/song-stats?trackId=${encodeURIComponent(trackId)}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Failed to fetch stats');
+        }
+        const data = await res.json();
+
+        resultContent.innerHTML = `
+          <p><span class="font-medium">Track:</span> ${data.name || 'Unknown'} – ${data.artist || ''}</p>
+          <p><span class="font-medium">Tempo:</span> ${Math.round(data.tempo)} BPM</p>
+          <p><span class="font-medium">Energy:</span> ${Math.round(data.energy * 100)}%</p>
+          <p><span class="font-medium">Danceability:</span> ${Math.round(data.danceability * 100)}%</p>
+          <p><span class="font-medium">Valence (mood):</span> ${Math.round(data.valence * 100)}%</p>
+          <p><span class="font-medium">Acousticness:</span> ${Math.round(data.acousticness * 100)}%</p>
+          <p><span class="font-medium">Mood Label:</span> ${data.moodLabel || '—'}</p>
+        `;
+        resultBox.classList.remove('hidden');
+      } catch (err) {
+        errorBox.textContent = err.message;
+        errorBox.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
