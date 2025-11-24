@@ -5,21 +5,21 @@ const fetch = require('node-fetch');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// 🔹 Serve static files from /public
+// Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🔹 Root route: send index.html
+// Root route -> index.html
 app.get('/', (req, res) => {
   console.log('GET / -> serving index.html');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 🔹 Health endpoint
+// Health endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// 🔹 Stub Song Stats endpoint
+// Stub Song Stats endpoint
 app.get('/song-stats', async (req, res) => {
   const trackId = req.query.trackId;
 
@@ -27,7 +27,6 @@ app.get('/song-stats', async (req, res) => {
     return res.status(400).json({ error: 'trackId query parameter is required' });
   }
 
-  // TODO: replace this with real Spotify API call later
   res.json({
     trackId,
     tempo: 120,
