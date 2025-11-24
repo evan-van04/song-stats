@@ -1,8 +1,8 @@
 const express = require('express');
+const path = require('path');
 const fetch = require('node-fetch');
 
 const app = express();
-app.use(express.static('public'));
 const PORT = process.env.PORT || 8080;
 
 // health endpoint (good for IBM health checks & registry)
